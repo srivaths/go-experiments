@@ -8,39 +8,66 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
+	"math"
 )
 
 func main() {
-	var targetNumber int
+	var targetNumber, foo int
 	fmt.Print("Enter a number: ")
 	fmt.Scanf("%d", &targetNumber)
-	if targetNumber < 2 {
-		fmt.Println("Very funny.")
+	if foo = int(math.Abs(float64(targetNumber))); foo < 2 {
+		fmt.Println("Bye")
 		os.Exit(0)
 	}
-	fmt.Printf("Largest prime factor of %d is %d\n", targetNumber, findFactor(targetNumber))
+	findFactor(foo)
+	fmt.Printf("(%d) Largest prime factor of %d is %d\n", threadcount, targetNumber, largestFactor)
 }
 
-func findFactor(targetNumber int) int {
+var wg sync.WaitGroup
+var largestFactor int
+var threadcount int
+var mutex sync.Mutex
+func findFactor(targetNumber int) {
 	// A factor of a given number cannot be greater than half of that number.
-	var largestFactor = targetNumber / 2
-	//fmt.Println("Largest possible prime of ", targetNumber, " is ", largestFactor)
-	for i := largestFactor; i >= 2; i-- {
+	var largestPossibleFactor = targetNumber / 2
+
+	for i := largestPossibleFactor; i >= 2; i-- {
+		wg.Add(1)
+		threadcount++
 		// Test only if i is a prime number
-		if targetNumber%i == 0 && i%2 != 0 && isPrime(i) {
-				return i
-		}
+		go fullyDivisible(targetNumber, i)
 	}
-	return targetNumber
+	wg.Wait()
 }
 
+/*
+Tests if targetNumber is fully divisble by factor
+ */
+func fullyDivisible(targetNumber, factor int) {
+	if targetNumber%factor == 0 && factor%2 != 0 && isPrime(factor) {
+		// Set the largest factor only if this is larger
+		// It *could* be smaller due to multi-threading.
+		mutex.Lock()
+		if factor > largestFactor {
+			largestFactor = factor
+		}
+		mutex.Unlock()
+	}
+	wg.Done()
+}
+
+/*
+Identifies if numberToTest is a prime number.
+ */
 func isPrime(numberToTest int) bool {
 	for j := 2; j <= numberToTest/2; j++ {
+		if largestFactor > 2 {
+			return false
+		}
 		if numberToTest % j == 0 {
-			//fmt.Println(numberToTest, " is not a prime number")
 			return false
 		}
 	}
-	//fmt.Println(numberToTest, " is a prime number")
 	return true
 }
