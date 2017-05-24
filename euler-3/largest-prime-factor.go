@@ -12,6 +12,7 @@ import (
 	"math"
 )
 
+
 func main() {
 	var targetNumber, foo int
 	fmt.Print("Enter a number: ")
@@ -62,7 +63,8 @@ Identifies if numberToTest is a prime number.
  */
 func isPrime(numberToTest int) bool {
 	for j := 2; j <= numberToTest/2; j++ {
-		if largestFactor > 2 {
+		// Quit if a lpf has been set to value greater than one being tested here.
+		if largestFactor > numberToTest {
 			return false
 		}
 		if numberToTest % j == 0 {
